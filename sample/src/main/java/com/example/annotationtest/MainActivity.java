@@ -2,7 +2,10 @@ package com.example.annotationtest;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.TextView;
+
+import java.util.Random;
 
 import zero.Zero;
 import zero.annotation.BindView;
@@ -18,7 +21,12 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     Zero.bind(this);
-    textView.setText("haha");
+    textView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        textView.setText(String.valueOf(new Random().nextInt()));
+      }
+    });
   }
 
 }
