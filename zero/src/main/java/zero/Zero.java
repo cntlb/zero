@@ -9,14 +9,21 @@ import zero.annotation.processor.ContentViewProcessor;
  * @since 17-11-22.
  */
 public class Zero {
-  public static void bindContent(Activity activity){
+
+  public static void bind(Activity activity){
     try {
       String fullName = activity.getClass().getCanonicalName()+ ContentViewProcessor.SUFFIX;
       Class<?> zeroBind = Class.forName(fullName);
-      IContent content = (IContent) zeroBind.getConstructor().newInstance();
-      content.setContentView(activity);
+      AbsZeroBind bind = (AbsZeroBind) zeroBind.getConstructor().newInstance();
+
+      //setContentView
+      bind.setContentView(activity);
+
+      //findViewById
+      bind.findViewById(activity);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
+
 }

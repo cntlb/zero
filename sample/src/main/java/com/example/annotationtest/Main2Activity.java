@@ -10,6 +10,6 @@ public class Main2Activity extends AppCompatActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    Zero.bindContent(this);
+    Zero.bind(this);
   }
 }
