@@ -1,6 +1,7 @@
 package zero.annotation.processor;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * @author Linbing Tang
@@ -16,12 +17,14 @@ public class BindData {
   //组件名， Activity等
   private String componentName;
 
-
   //content view 数据
   private ContentData contentData;
 
   //绑定的控件集合
   private ArrayList<BindViewData> bindViewDatas = new ArrayList<>();
+
+  //OnClick 事件
+  private ArrayList<OnClickData> onClickDatas = new ArrayList<>();
 
   public String getPackageName() {
     return packageName;
@@ -68,6 +71,11 @@ public class BindData {
     return this;
   }
 
+  public BindData addOnClickData(OnClickData onClickData){
+    onClickDatas.add(onClickData);
+    return this;
+  }
+
   public String getQualifiedName(){
     return packageName+"."+className;
   }
@@ -77,6 +85,7 @@ public class BindData {
     sb.append("// Generated code from Zero library. Do not modify!\n")
       .append("package ").append(packageName).append(";\n\n")
       .append("import android.app.*;\n")
+      .append("import android.view.View;\n")
       .append("import zero.*;\n")
       .append("import ").append(packageName).append(".*;\n\n")
       .append("public class ").append(className).append(" extends AbsZeroBind {\n\n");
@@ -93,12 +102,30 @@ public class BindData {
     if(!bindViewDatas.isEmpty()){
       sb.append("  @Override\n")
         .append("  public void findViewById(Activity a) {\n")
-        .append("    //cast to ").append(componentName).append("\n")
         .append("    ").append(componentName).append(" activity = (").append(componentName).append(")a;\n");
       for(BindViewData viewData : bindViewDatas){
         sb.append("    ").append("activity.").append(viewData.getName())
           .append(" = (").append(viewData.getViewType())
           .append(")activity.findViewById(").append(String.valueOf(viewData.getId())).append(");\n");
+      }
+      sb.append("  }\n\n");
+    }
+
+    //setOnClickListener
+    if(!onClickDatas.isEmpty()){
+      sb.append("  @Override\n")
+        .append("  public void setOnClickListener(Activity a) {\n")
+        .append("    final ").append(componentName).append(" activity = (").append(componentName).append(")a;\n");
+      String tmp =
+          "    activity.findViewById(%d).setOnClickListener(new View.OnClickListener(){\n" +
+          "      @Override public void onClick(View view){\n" +
+          "        activity.%s();\n"+
+          "      }\n"+
+          "    });\n";
+      for(OnClickData onClickData : onClickDatas){
+        for(int id : onClickData.getIds()) {
+          sb.append(String.format(Locale.getDefault(), tmp, id, onClickData.getMethod()));
+        }
       }
       sb.append("  }\n\n");
     }

@@ -21,6 +21,9 @@ public class Zero {
 
       //findViewById
       bind.findViewById(activity);
+
+      //setOnClickListener
+      bind.setOnClickListener(activity);
     } catch (Exception e) {
       e.printStackTrace();
     }

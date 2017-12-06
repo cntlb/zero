@@ -3,6 +3,7 @@ package zero.annotation.processor;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -21,10 +23,12 @@ import javax.tools.JavaFileObject;
 
 import zero.annotation.BindView;
 import zero.annotation.ContentView;
+import zero.annotation.OnClick;
 
 @SupportedAnnotationTypes({
   "zero.annotation.ContentView",
   "zero.annotation.BindView",
+  "zero.annotation.OnClick",
 })
 public class ZeroBindProcessor extends LoggerProcessor {
 
@@ -98,6 +102,33 @@ public class ZeroBindProcessor extends LoggerProcessor {
         .setViewType(variableElement.asType().toString())
         .setName(variableElement.getSimpleName().toString());
       bindData.addBindViewData(bindViewData);
+      map.put(typeElement, bindData);
+    }
+
+    for(Element element : env.getElementsAnnotatedWith(OnClick.class)){
+      if(!(element instanceof ExecutableElement)){
+        error(element, "OnClick必须使用在方法上");
+        throw new RuntimeException();
+      }
+
+      ExecutableElement method = (ExecutableElement) element;
+      List<? extends VariableElement> parameters = method.getParameters();
+      if(parameters != null && !parameters.isEmpty()){
+        error(element, "OnClick必须使用在无参方法上");
+        throw new RuntimeException();
+      }
+
+      TypeElement typeElement = (TypeElement) method.getEnclosingElement();
+      BindData bindData = map.get(typeElement);
+      if(bindData == null){
+        bindData = newBindData(typeElement);
+      }
+
+      int[] ids = element.getAnnotation(OnClick.class).value();
+      OnClickData onClickData = new OnClickData()
+        .setIds(ids)
+        .setMethod(method.getSimpleName().toString());
+      bindData.addOnClickData(onClickData);
       map.put(typeElement, bindData);
     }
 
