@@ -19,7 +19,7 @@ android {
 }
 
 dependencies {
-    annotationProcessor project(path: ':zero-annotation-processor')
+    annotationProcessor project(':zero-annotation-processor')
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
@@ -28,5 +28,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     api project(path: ':zero-annotation')
-    compile project(path: ':zero')
+    compile project(':zero')
 }

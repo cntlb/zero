@@ -19,7 +19,6 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
-import zero.Constant;
 import zero.annotation.BindView;
 import zero.annotation.ContentView;
 
@@ -29,7 +28,7 @@ import zero.annotation.ContentView;
 })
 public class ZeroBindProcessor extends LoggerProcessor {
 
-  public static final String SUFFIX = Constant.SUFFIX;
+  public static final String SUFFIX = "$$ZeroBind";
 
   private Filer filer;
   private Elements elementUtils;
