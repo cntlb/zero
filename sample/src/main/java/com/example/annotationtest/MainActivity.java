@@ -1,5 +1,6 @@
 package com.example.annotationtest;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
@@ -23,7 +24,13 @@ public class MainActivity extends AppCompatActivity {
     Zero.bind(this);
   }
 
-  @OnClick({R.id.text, R.id.button}) void changeText() {
+  @OnClick({R.id.text})
+  void changeText() {
     textView.setText(String.valueOf(new Random().nextInt()));
+  }
+
+  @OnClick(R.id.button)
+  void gotoActivity2(){
+    startActivity(new Intent(this, Main2Activity.class));
   }
 }

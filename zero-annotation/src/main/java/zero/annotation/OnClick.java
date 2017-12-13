@@ -1,5 +1,10 @@
 package zero.annotation;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Bind a method to an {@link OnClickListener OnClickListener} on the view for each ID specified.
  * <pre><code>
@@ -14,6 +19,8 @@ package zero.annotation;
  * @author Linbing Tang
  * @since 17-12-6.
  */
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
 public @interface OnClick {
   int[] value() default {-1};
 }
