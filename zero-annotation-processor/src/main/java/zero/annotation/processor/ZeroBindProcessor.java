@@ -13,6 +13,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -70,32 +71,27 @@ public class ZeroBindProcessor extends LoggerProcessor {
     Map<TypeElement, BindData> map = new LinkedHashMap<>();
 
     for(Element element : env.getElementsAnnotatedWith(ContentView.class)){
-      if(!(element instanceof TypeElement)){
+      if(element.getKind() != ElementKind.CLASS){
         error(element, "ContentView必须使用在类上面");
         throw new RuntimeException();
       }
 
-      BindData bindData = map.get(element);
-      if(bindData == null){
-        bindData = newBindData((TypeElement) element);
-      }
+      TypeElement typeElement = (TypeElement) element;
+      BindData bindData = getOrCreateBindData(map, typeElement);
       int id = element.getAnnotation(ContentView.class).value();
       bindData.setContentData(new ContentData().setId(id));
-      map.put((TypeElement) element, bindData);
+      map.put(typeElement, bindData);
     }
 
     for(Element element : env.getElementsAnnotatedWith(BindView.class)){
-      if(!(element instanceof VariableElement)){
+      if(element.getKind() != ElementKind.FIELD){
         error(element, "BindView必须使用在字段上面");
         throw new RuntimeException();
       }
 
       VariableElement variableElement = (VariableElement) element;
       TypeElement typeElement = (TypeElement) element.getEnclosingElement();
-      BindData bindData = map.get(typeElement);
-      if(bindData == null){
-        bindData = newBindData(typeElement);
-      }
+      BindData bindData = getOrCreateBindData(map, typeElement);
       int id = element.getAnnotation(BindView.class).value();
       BindViewData bindViewData = new BindViewData()
         .setId(id)
@@ -106,7 +102,7 @@ public class ZeroBindProcessor extends LoggerProcessor {
     }
 
     for(Element element : env.getElementsAnnotatedWith(OnClick.class)){
-      if(!(element instanceof ExecutableElement)){
+      if(element.getKind() != ElementKind.METHOD){
         error(element, "OnClick必须使用在方法上");
         throw new RuntimeException();
       }
@@ -119,10 +115,7 @@ public class ZeroBindProcessor extends LoggerProcessor {
       }
 
       TypeElement typeElement = (TypeElement) method.getEnclosingElement();
-      BindData bindData = map.get(typeElement);
-      if(bindData == null){
-        bindData = newBindData(typeElement);
-      }
+      BindData bindData = getOrCreateBindData(map, typeElement);
 
       int[] ids = element.getAnnotation(OnClick.class).value();
       OnClickData onClickData = new OnClickData()
@@ -132,8 +125,15 @@ public class ZeroBindProcessor extends LoggerProcessor {
       map.put(typeElement, bindData);
     }
 
-
     return map;
+  }
+
+  private BindData getOrCreateBindData(Map<TypeElement, BindData> map, TypeElement element){
+    BindData bindData = map.get(element);
+    if(bindData == null){
+      bindData = newBindData(element);
+    }
+    return bindData;
   }
 
   private BindData newBindData(TypeElement element){
