@@ -18,6 +18,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
@@ -38,6 +39,7 @@ public class ZeroBindProcessor extends LoggerProcessor {
   private Filer filer;
   private Elements elementUtils;
   private Types typeUtils;
+  private TypeMirror activityType;
 
   @Override
   public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -45,6 +47,7 @@ public class ZeroBindProcessor extends LoggerProcessor {
     filer = processingEnv.getFiler();
     elementUtils = processingEnv.getElementUtils();
     typeUtils = processingEnv.getTypeUtils();
+    activityType = elementUtils.getTypeElement("android.app.Activity").asType();
   }
 
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
@@ -72,11 +75,14 @@ public class ZeroBindProcessor extends LoggerProcessor {
 
     for(Element element : env.getElementsAnnotatedWith(ContentView.class)){
       if(element.getKind() != ElementKind.CLASS){
-        error(element, "ContentView必须使用在类上面");
-        throw new RuntimeException();
+        errorThrow(element, "ContentView必须使用在类上");
       }
 
       TypeElement typeElement = (TypeElement) element;
+      if(!isSubtypeOfActivity(typeElement)){
+        errorThrow(element, "ContentView必须使用在Activity上");
+      }
+
       BindData bindData = getOrCreateBindData(map, typeElement);
       int id = element.getAnnotation(ContentView.class).value();
       bindData.setContentData(new ContentData().setId(id));
@@ -85,8 +91,7 @@ public class ZeroBindProcessor extends LoggerProcessor {
 
     for(Element element : env.getElementsAnnotatedWith(BindView.class)){
       if(element.getKind() != ElementKind.FIELD){
-        error(element, "BindView必须使用在字段上面");
-        throw new RuntimeException();
+        errorThrow(element, "BindView必须使用在字段上面");
       }
 
       VariableElement variableElement = (VariableElement) element;
@@ -103,15 +108,13 @@ public class ZeroBindProcessor extends LoggerProcessor {
 
     for(Element element : env.getElementsAnnotatedWith(OnClick.class)){
       if(element.getKind() != ElementKind.METHOD){
-        error(element, "OnClick必须使用在方法上");
-        throw new RuntimeException();
+        errorThrow(element, "OnClick必须使用在方法上");
       }
 
       ExecutableElement method = (ExecutableElement) element;
       List<? extends VariableElement> parameters = method.getParameters();
       if(parameters != null && !parameters.isEmpty()){
-        error(element, "OnClick必须使用在无参方法上");
-        throw new RuntimeException();
+        errorThrow(element, "OnClick必须使用在无参方法上");
       }
 
       TypeElement typeElement = (TypeElement) method.getEnclosingElement();
@@ -128,6 +131,10 @@ public class ZeroBindProcessor extends LoggerProcessor {
     return map;
   }
 
+  private boolean isSubtypeOfActivity(TypeElement element) {
+    return typeUtils.isSubtype(element.asType(), activityType);
+  }
+
   private BindData getOrCreateBindData(Map<TypeElement, BindData> map, TypeElement element){
     BindData bindData = map.get(element);
     if(bindData == null){
@@ -137,7 +144,7 @@ public class ZeroBindProcessor extends LoggerProcessor {
   }
 
   private BindData newBindData(TypeElement element){
-    PackageElement packageEle = (PackageElement) element.getEnclosingElement();
+    PackageElement packageEle = elementUtils.getPackageOf(element);
     String className = element.getSimpleName().toString();
     return new BindData()
       .setPackageName(packageEle.getQualifiedName().toString())

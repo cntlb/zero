@@ -24,14 +24,20 @@ public abstract class LoggerProcessor extends AbstractProcessor {
     printMessage(Diagnostic.Kind.ERROR, element, message, args);
   }
 
+  protected void errorThrow(Element element, String message, Object... args) {
+    message = printMessage(Diagnostic.Kind.ERROR, element, message, args);
+    throw new RuntimeException(message);
+  }
+
   protected void note(Element element, String message, Object... args) {
     printMessage(Diagnostic.Kind.NOTE, element, message, args);
   }
 
-  private void printMessage(Diagnostic.Kind kind, Element element, String message, Object[] args) {
+  private String printMessage(Diagnostic.Kind kind, Element element, String message, Object[] args) {
     if (args.length > 0) {
       message = String.format(message, args);
     }
     messager.printMessage(kind, message, element);
+    return message;
   }
 }
