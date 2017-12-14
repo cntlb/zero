@@ -105,6 +105,8 @@ public @interface ContentView {
 这个注解使用在Activity类上，为Activity指定布局。类似于ButterKnife(ButterKnife不提供类似的注解)，`@ContentView`的作用使得我们将来要在
 
 ```java
+package com.example.annotationtest;
+
 @ContentView(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
   @Override
@@ -303,6 +305,24 @@ public class ContentViewProcessor extends LoggerProcessor {
   }
 }
 ```
+
+通过上面的处理器将产生`MainActivity$$ZeroBind.java`文件在：
+
+```
+sample/
+├── build
+    └── generated
+        └── source
+            └── apt
+                └── debug
+                    └── com
+                        └── example
+                            └── annotationtest
+                                └── MainActivity$$ZeroBind.java
+ //注解处理器生成的源代码都在 build/generated/source/apt目录下
+```
+
+这个源码与`MainActivity`在同一个包中，因此可以访问到`MainActivity`中的包级成员。
 
 为了说明上面的代码以及理解，需要一些准备知识。
 
@@ -530,3 +550,6 @@ public class Zero {
 ```
 
 现在可以向ButterKnife一样使用`Zero.bind` 。这里根据我们定义的规则使用了少量的运行时反射手段用于动态调用适当的代码，另外发布时需要将相应的类不做混淆处理即可。
+
+本文着重介绍注解处理器相关api及其应用，至于代码的封装可以参考笔者添加 `@BindView` 和 `@OnClick` 后的代码([zero-bind-library](https://github.com/cntlb/zero))或者[ButterKnife](https://github.com/JakeWharton/butterknife) 。
+
